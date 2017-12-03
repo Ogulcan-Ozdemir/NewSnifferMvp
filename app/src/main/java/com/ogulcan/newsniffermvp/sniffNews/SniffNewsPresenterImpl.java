@@ -2,11 +2,8 @@ package com.ogulcan.newsniffermvp.sniffNews;
 
 
 import com.ogulcan.newsniffermvp.model.ArticleModel;
-import com.ogulcan.newsniffermvp.model.NewsReponseModel;
 import com.ogulcan.newsniffermvp.sniffNews.NewsInteractor.ResponseListener;
 import com.ogulcan.newsniffermvp.sniffNews.NewsInteractor.SniffNewsInteractorImpl;
-
-import java.util.ArrayList;
 
 public class SniffNewsPresenterImpl implements ISniffNewsPresenter,ResponseListener{
 
@@ -20,15 +17,8 @@ public class SniffNewsPresenterImpl implements ISniffNewsPresenter,ResponseListe
 
 
     @Override
-    public void onNewSniffed(NewsReponseModel model) {
-        ArrayList<ArticleModel> articles=new ArrayList<>();
-        //todo delete this uncessary bussiness logic implemeted just for mvp structure
-        for(ArticleModel article: model.getArticles()){
-            if(article.getAuthor()!=null){
-                articles.add(article);
-            }
-        }
-        view.onIncomingNews(articles.toArray(new ArticleModel[articles.size()]));
+    public void onNewSniffed(ArticleModel[] articles) {
+        view.onIncomingNews(articles);
     }
 
     @Override

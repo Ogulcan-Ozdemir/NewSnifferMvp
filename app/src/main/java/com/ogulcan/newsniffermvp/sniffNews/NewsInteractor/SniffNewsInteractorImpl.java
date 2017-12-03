@@ -3,8 +3,11 @@ package com.ogulcan.newsniffermvp.sniffNews.NewsInteractor;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.ogulcan.newsniffermvp.model.ArticleModel;
 import com.ogulcan.newsniffermvp.model.NewsReponseModel;
 import com.ogulcan.newsniffermvp.service.NewsApi;
+
+import java.util.ArrayList;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -29,6 +32,7 @@ public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>{
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build();
 
+        //todo Repository layer eklencek
         NewsApi api= retrofit.create(NewsApi.class);
 
         Call<NewsReponseModel> request= api.sniffNews("Teb",api_key);
@@ -40,7 +44,14 @@ public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>{
     @Override
     public void onResponse(Call<NewsReponseModel> call, Response<NewsReponseModel> response) {
         if(response.isSuccessful()){
-            listener.onNewSniffed(response.body());
+            //todo delete this uncessary bussiness logic implemeted just for mvp structure
+            ArrayList<ArticleModel> articles=new ArrayList<>();
+            for(ArticleModel article: response.body().getArticles()){
+                if(article.getAuthor()!=null){
+                    articles.add(article);
+                }
+            }
+            listener.onNewSniffed(articles.toArray(new ArticleModel[articles.size()]));
         }else {
             listener.onNewsResponseError(response.errorBody().toString());
         }
