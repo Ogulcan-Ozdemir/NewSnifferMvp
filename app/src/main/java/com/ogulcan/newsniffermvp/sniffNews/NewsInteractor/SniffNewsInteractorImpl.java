@@ -20,7 +20,7 @@ public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>{
     private ResponseListener listener;
     // TODO: 3.12.2017  url resource içinde olmalı 
     private static String url=" https://newsapi.org/v2/";
-    private static String api_key="fa2ff70b3650472e96f7c8e16e0f6226";
+    private static String api_key=yourapikey;
 
     public SniffNewsInteractorImpl( final ResponseListener listener){
         this.listener=listener;
