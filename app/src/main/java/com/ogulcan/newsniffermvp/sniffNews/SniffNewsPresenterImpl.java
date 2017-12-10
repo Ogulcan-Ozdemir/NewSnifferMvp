@@ -30,4 +30,14 @@ public class SniffNewsPresenterImpl implements ISniffNewsPresenter,ResponseListe
     public void onRequestFailure(String error) {
          view.onError(error);
     }
+
+    @Override
+    public ArticleModel selectedArticle(Integer id){
+        return newsInteractor.getArticles().get(id);
+    }
+
+    @Override
+    public void getMoreNews() {
+       newsInteractor.getMoreNews();
+    }
 }

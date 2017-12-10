@@ -15,15 +15,23 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>{
+public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>,SniffNewsInteractor{
 
     private ResponseListener listener;
     // TODO: 3.12.2017  url resource içinde olmalı 
     private static String url=" https://newsapi.org/v2/";
     private static String api_key="fa2ff70b3650472e96f7c8e16e0f6226";
 
+
+    //TODO this should come from local repo not  from intreactor
+    private ArrayList<ArticleModel> articles;
+    private static  NewsApi api;
+    //it starts 1
+    private static int currentPage=1;
     public SniffNewsInteractorImpl( final ResponseListener listener){
         this.listener=listener;
+
+        articles = new ArrayList<>();
 
         Gson gson =new GsonBuilder().setLenient().create();
 
@@ -33,19 +41,21 @@ public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>{
                 .build();
 
         //todo Repository layer eklencek
-        NewsApi api= retrofit.create(NewsApi.class);
+        api= retrofit.create(NewsApi.class);
 
-        Call<NewsReponseModel> request= api.sniffNews("Teb",api_key);
+        Call<NewsReponseModel> request= api.sniffNews("Teb",currentPage,api_key);
         request.enqueue(this);
 
     }
+
+
 
 
     @Override
     public void onResponse(Call<NewsReponseModel> call, Response<NewsReponseModel> response) {
         if(response.isSuccessful()){
             //todo delete this uncessary bussiness logic implemeted just for mvp structure
-            ArrayList<ArticleModel> articles=new ArrayList<>();
+
             for(ArticleModel article: response.body().getArticles()){
                 if(article.getAuthor()!=null){
                     articles.add(article);
@@ -60,5 +70,15 @@ public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>{
     @Override
     public void onFailure(Call<NewsReponseModel> call, Throwable t) {
         listener.onRequestFailure(t.getLocalizedMessage());
+    }
+
+    public ArrayList<ArticleModel> getArticles() {
+        return articles;
+    }
+
+    @Override
+    public void getMoreNews() {
+        Call<NewsReponseModel> request= api.sniffNews("Teb",currentPage+1,api_key);
+        request.enqueue(this);
     }
 }

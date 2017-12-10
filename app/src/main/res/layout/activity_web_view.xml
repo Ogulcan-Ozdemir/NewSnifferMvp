@@ -4,22 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.ogulcan.newsniffermvp.ui.NewsHubActivity">
+    tools:context="com.ogulcan.newsniffermvp.ui.WebViewActivity">
 
 
-    <android.support.v7.widget.RecyclerView
+    <WebView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/newsList"
-        />
-
-    <!--<ListView-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:id="@+id/newsList"-->
-        <!--/>-->
-
-
-
+        android:id="@+id/web_view"/>
 
 </android.support.constraint.ConstraintLayout>
