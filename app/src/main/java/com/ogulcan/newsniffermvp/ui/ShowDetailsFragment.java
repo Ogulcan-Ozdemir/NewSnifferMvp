@@ -13,7 +13,6 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import com.ogulcan.newsniffermvp.R;
-import com.ogulcan.newsniffermvp.utils.WebViewClient;
 
 
 public class ShowDetailsFragment extends Fragment implements View.OnKeyListener{
@@ -61,7 +60,7 @@ public class ShowDetailsFragment extends Fragment implements View.OnKeyListener{
             webSettings=webView.getSettings();
 //        webSettings.setJavaScriptEnabled(true);
         webView.setWebChromeClient(new WebChromeClient());
-        webView.setWebViewClient(new WebViewClient());
+//        webView.setWebViewClient(new WebViewClient());
         webView.loadUrl(url);
 
         webView.getSettings().setDomStorageEnabled(true);

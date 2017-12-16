@@ -20,14 +20,15 @@ public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>,Sniff
     private ResponseListener listener;
     // TODO: 3.12.2017  url resource içinde olmalı 
     private static String url=" https://newsapi.org/v2/";
-    private static String api_key=yourapikey;
+    private static String api_key="fa2ff70b3650472e96f7c8e16e0f6226";
 
 
     //TODO this should come from local repo not  from intreactor
     private ArrayList<ArticleModel> articles;
     private static  NewsApi api;
     //it starts 1
-    private static int currentPage=1;
+    private int currentPage=1;
+    private String searchText;
     public SniffNewsInteractorImpl( final ResponseListener listener){
         this.listener=listener;
 
@@ -42,13 +43,16 @@ public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>,Sniff
 
         //todo Repository layer eklencek
         api= retrofit.create(NewsApi.class);
-
-        Call<NewsReponseModel> request= api.sniffNews("Teb",currentPage,api_key);
-        request.enqueue(this);
+        //todo keep search text in preferences
+        searchText = "amd";
+       makeNewResponse(searchText);
 
     }
 
-
+    private void makeNewResponse(String searchText){
+        Call<NewsReponseModel> request= api.sniffNews(searchText,currentPage,"en",api_key);
+        request.enqueue(this);
+    }
 
 
     @Override
@@ -57,11 +61,16 @@ public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>,Sniff
             //todo delete this uncessary bussiness logic implemeted just for mvp structure
 
             for(ArticleModel article: response.body().getArticles()){
-                if(article.getAuthor()!=null){
+                if(article.getAuthor()!=null &&  article.getUrlToImage() != null && article.getUrlToImage().contains("http") ){
                     articles.add(article);
                 }
             }
-            listener.onNewSniffed(articles.toArray(new ArticleModel[articles.size()]));
+            if(articles.size()<20){
+                listener.onNewSniffed(articles,true);
+            }else {
+                listener.onNewSniffed(articles,false);
+            }
+
         }else {
             listener.onNewsResponseError(response.errorBody().toString());
         }
@@ -78,7 +87,17 @@ public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>,Sniff
 
     @Override
     public void getMoreNews() {
-        Call<NewsReponseModel> request= api.sniffNews("Teb",currentPage+1,api_key);
-        request.enqueue(this);
+        currentPage+=1;
+        makeNewResponse(searchText);
     }
+
+    @Override
+    public void initNewSearch(String input) {
+        articles.clear();
+        currentPage=1;
+        searchText=input;
+        makeNewResponse(searchText);
+    }
+
+
 }

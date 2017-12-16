@@ -11,22 +11,26 @@ import com.ogulcan.newsniffermvp.R;
 import com.ogulcan.newsniffermvp.model.ArticleModel;
 import com.squareup.picasso.Picasso;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class NewsListAdapter extends RecyclerView.Adapter<NewsViewHolder> {
 
-    private List<ArticleModel> articleModelList;
+    private ArrayList<ArticleModel> articleModelList;
     private Context context;
 
-    public NewsListAdapter( List<ArticleModel> articleModelList,Context context){
+
+
+
+    public NewsListAdapter( ArrayList<ArticleModel> articleModelList,Context context){
         this.articleModelList = articleModelList;
         this.context = context;
     }
 
 
 
-    public void addMoreNews(List<ArticleModel> newListItems){
-        articleModelList.addAll(newListItems);
+    public void addMoreNews(ArrayList<ArticleModel> newListItems){
+            articleModelList=newListItems;
+
     }
 
     @Override
@@ -39,15 +43,19 @@ public class NewsListAdapter extends RecyclerView.Adapter<NewsViewHolder> {
 
     @Override
     public void onBindViewHolder(NewsViewHolder holder, int position) {
+
         ArticleModel article = articleModelList.get(position);
-        Picasso.with(context).load(article.getUrlToImage()).fit().into(holder.news_image);
+        Picasso.with(context).load(article.getUrlToImage()).fit().error(R.drawable.ic_launcher_background).into(holder.news_image);
         holder.news_text.setText(article.getTitle());
         //todo into the string resource
         holder.news_source.setText("Source:  "+article.getSource().getName());
+
     }
 
     @Override
     public int getItemCount() {
         return articleModelList.size();
     }
+
+
 }

@@ -8,24 +8,21 @@ import android.view.View;
 public class NewsRecyclerListClickListener implements RecyclerView.OnItemTouchListener {
 
     private OnItemClickListener onItemClickListener;
-    private int lastMotionEvent = -1;
+
     public NewsRecyclerListClickListener(final OnItemClickListener onItemClickListener) {
         this.onItemClickListener = onItemClickListener;
 
     }
 
-
-
     @Override
     public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
 
-        if(e.getAction() == MotionEvent.ACTION_UP &&  lastMotionEvent == MotionEvent.ACTION_DOWN){
+        if(e.getAction() == MotionEvent.ACTION_UP && rv.getScrollState() == RecyclerView.SCROLL_STATE_IDLE){
             View v=rv.findChildViewUnder(e.getX(), e.getY());
             onItemClickListener.itemClicked(v,rv.getChildAdapterPosition(v));
-            lastMotionEvent = -1;
             return true;
         }
-        lastMotionEvent = e.getAction();
+
         return false;
     }
 

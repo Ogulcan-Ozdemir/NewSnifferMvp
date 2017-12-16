@@ -3,12 +3,17 @@ package com.ogulcan.newsniffermvp.ui.NewsRecyclerList;
 
 import android.support.v7.widget.RecyclerView;
 
-public class ScrollListener extends RecyclerView.OnScrollListener {
+public class ScrollListener extends RecyclerView.OnScrollListener{
 
-    private RecyclerView.LayoutManager layoutManager;
+    private OnBottomOfListListener onBottomOfListListener;
 
-    public ScrollListener(RecyclerView.LayoutManager layoutManager)   {
-        this.layoutManager = layoutManager;
+
+    public interface OnBottomOfListListener {
+        void onReachedEnd();
+    }
+
+    public ScrollListener(OnBottomOfListListener onBottomOfListListener)   {
+        this.onBottomOfListListener = onBottomOfListListener;
     }
 
 
@@ -20,12 +25,10 @@ public class ScrollListener extends RecyclerView.OnScrollListener {
     @Override
     public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
         super.onScrolled(recyclerView, dx, dy);
-        int visibleItemCount = layoutManager.getChildCount();
-        int totalItemCount = layoutManager.getItemCount();
-//        int pastVisibleItems = layoutManager.findFirstVisibleItemPosition();
-//        if (pastVisibleItems + visibleItemCount >= totalItemCount) {
-//                //End of list
-//        }
+
+        if ( !recyclerView.canScrollVertically(1) && dy != 0) {
+            onBottomOfListListener.onReachedEnd();
+        }
 
     }
 }

@@ -5,6 +5,8 @@ import com.ogulcan.newsniffermvp.model.ArticleModel;
 import com.ogulcan.newsniffermvp.sniffNews.NewsInteractor.ResponseListener;
 import com.ogulcan.newsniffermvp.sniffNews.NewsInteractor.SniffNewsInteractorImpl;
 
+import java.util.ArrayList;
+
 public class SniffNewsPresenterImpl implements ISniffNewsPresenter,ResponseListener{
 
     private ISniffNewsView view;
@@ -17,8 +19,8 @@ public class SniffNewsPresenterImpl implements ISniffNewsPresenter,ResponseListe
 
 
     @Override
-    public void onNewSniffed(ArticleModel[] articles) {
-        view.onIncomingNews(articles);
+    public void onNewSniffed(ArrayList<ArticleModel> articles,boolean isFeedChange) {
+        view.onIncomingNews(articles,isFeedChange);
     }
 
     @Override
@@ -39,5 +41,10 @@ public class SniffNewsPresenterImpl implements ISniffNewsPresenter,ResponseListe
     @Override
     public void getMoreNews() {
        newsInteractor.getMoreNews();
+    }
+
+    @Override
+    public void searchForThis(String input) {
+         newsInteractor.initNewSearch(input);
     }
 }
