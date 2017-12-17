@@ -26,6 +26,7 @@ public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>,Sniff
     //TODO this should come from local repo not  from intreactor
     private ArrayList<ArticleModel> articles;
     private static  NewsApi api;
+
     //it starts 1
     private int currentPage=1;
     private String searchText;
@@ -43,10 +44,15 @@ public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>,Sniff
 
         //todo Repository layer eklencek
         api= retrofit.create(NewsApi.class);
-        //todo keep search text in preferences
-        searchText = "amd";
-       makeNewResponse(searchText);
 
+        //todo keep search text in preferences
+        searchText = "Teb";
+
+    }
+
+    @Override
+    public void startSearchingNews() {
+        makeNewResponse(searchText);
     }
 
     private void makeNewResponse(String searchText){
@@ -65,6 +71,7 @@ public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>,Sniff
                     articles.add(article);
                 }
             }
+
             if(articles.size()<20){
                 listener.onNewSniffed(articles,true);
             }else {
@@ -98,6 +105,8 @@ public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>,Sniff
         searchText=input;
         makeNewResponse(searchText);
     }
+
+
 
 
 }

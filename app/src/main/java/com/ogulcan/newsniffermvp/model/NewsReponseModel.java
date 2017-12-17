@@ -5,6 +5,7 @@ package com.ogulcan.newsniffermvp.model;
 public class NewsReponseModel {
     private String status;
     private ArticleModel[] articles;
+    private Integer totalResults;
 
     public NewsReponseModel(){}
 
@@ -28,4 +29,13 @@ public class NewsReponseModel {
     public void setArticles(ArticleModel[] articles) {
         this.articles = articles;
     }
+
+    public Integer getTotalResults() {
+        return totalResults;
+    }
+
+    public void setTotalResults(Integer totalResults) {
+        this.totalResults = totalResults;
+    }
+
 }

@@ -2,16 +2,20 @@ package com.ogulcan.newsniffermvp.ui;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,11 +27,14 @@ import com.ogulcan.newsniffermvp.ui.NewsRecyclerList.NewsListAdapter;
 import com.ogulcan.newsniffermvp.ui.NewsRecyclerList.NewsRecyclerListClickListener;
 import com.ogulcan.newsniffermvp.ui.NewsRecyclerList.OnItemClickListener;
 import com.ogulcan.newsniffermvp.ui.NewsRecyclerList.ScrollListener;
+import com.ogulcan.newsniffermvp.utils.NetworkStatusReceiver;
 
 import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+
+import static android.view.inputmethod.EditorInfo.IME_ACTION_DONE;
 
 public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView,ShowDetailsFragment.OnFragmentInteractionListener,OnItemClickListener,ScrollListener.OnBottomOfListListener,TextView.OnEditorActionListener{
 
@@ -37,26 +44,37 @@ public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView
     @BindView(R.id.search_box)
     EditText editText;
 
+    @BindView(R.id.progressBar)
+    ProgressBar progressBar;
+
     private static String TAG;
-    private static int SEARCH_BUTTON_PRESSED = 1;
+
 
     private  ShowDetailsFragment detailsFragment;
 
     private ProgressDialog dialog;
+    private AlertDialog alertDialog;
     private SniffNewsPresenterImpl sniffNewsPresenter;
     private NewsListAdapter adapter;
-
-    private ScrollListener scrollListener = new ScrollListener(this);
+    private NetworkStatusReceiver receiver;
+    private ScrollListener scrollListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_news_hub);
+
         ButterKnife.bind(this);
 
         TAG=getLocalClassName();
 
         dialog= ProgressDialog.show(this,"Sniffing news...",null);
+
+
+//        setProgressBarIndeterminateVisibility(true);
+
+        receiver = new NetworkStatusReceiver();
+
 
         if(detailsFragment == null) {
             detailsFragment = (ShowDetailsFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_frame);
@@ -68,13 +86,25 @@ public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView
         llm.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(llm);
 
+        adapter=new NewsListAdapter(new ArrayList<ArticleModel>(),this);
+        recyclerView.setAdapter(adapter);
+
+        scrollListener =  new ScrollListener(this,this.editText);
         recyclerView.addOnItemTouchListener(new NewsRecyclerListClickListener(this));
         recyclerView.addOnScrollListener(scrollListener);
 
-        // TODO: 16.12.2017  stirng resource
-        editText.setImeActionLabel("Search",SEARCH_BUTTON_PRESSED);
-        editText.setOnEditorActionListener(this);
 
+        editText.setImeActionLabel("Search",IME_ACTION_DONE);
+        editText.setOnEditorActionListener(this);
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+
+        alertDialog = makeAlertDialog();
+
+        if(receiver.isConnected(this)){
+            sniffNewsPresenter.startSearchNews();
+        }else {
+            alertDialog.show();
+        }
 
 
     }
@@ -82,18 +112,15 @@ public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView
 
     @Override
     public void onIncomingNews(ArrayList<ArticleModel> articles,boolean isFeedChange) {
-        if(adapter==null){
-            adapter=new NewsListAdapter(articles,this);
-            recyclerView.setAdapter(adapter);
 
-        }else {
-            if(isFeedChange){
-                adapter.notifyItemRangeRemoved(0,adapter.getItemCount());
-            }
-            adapter.addMoreNews(articles);
+        if(isFeedChange){
+            adapter.notifyItemRangeRemoved(0,adapter.getItemCount());
         }
+
+        adapter.addMoreNews(articles);
         adapter.notifyDataSetChanged();
         dialog.dismiss();
+        setProgressBarIndeterminateVisibility(false);
     }
 
     @Override
@@ -103,12 +130,27 @@ public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView
         Log.e(TAG, "onError: "+error);
     }
 
+
     @Override
-    protected void onPostResume() {
-        super.onPostResume();
-        dialog.dismiss();
-        recyclerView.addOnScrollListener(scrollListener);
+    protected void onStart() {
+        super.onStart();
+
     }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        recyclerView.addOnScrollListener(scrollListener);
+
+        if(receiver.isConnected(this)){
+//           sniffNewsPresenter.startSearchNews();
+        }else {
+            alertDialog.show();
+        }
+
+    }
+
+
 
     @Override
     protected void onPause() {
@@ -158,13 +200,13 @@ public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView
     @Override
     public boolean onEditorAction(TextView view, int actionId, KeyEvent keyEvent) {
 
-        if (actionId == SEARCH_BUTTON_PRESSED) {
+        if (actionId == IME_ACTION_DONE) {
 
             if(!view.getText().toString().equals("")){
                 InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                imm.hideSoftInputFromWindow(view.getWindowToken(),0);
                 sniffNewsPresenter.searchForThis(view.getText().toString());
-
+                dialog.show();
             }else {
                 Toast.makeText(this,"You didn't enter anything for search",Toast.LENGTH_SHORT).show();
             }
@@ -174,4 +216,30 @@ public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView
 
         return false;
     }
+
+    public AlertDialog makeAlertDialog(){
+
+           return new AlertDialog.Builder(this)
+                    .setIcon(R.drawable.ic_launcher_foreground)
+                    .setTitle("Network connection lost")
+                    .setPositiveButton("Open Network connection",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    Intent intent = new Intent(Intent.ACTION_MAIN);
+                                    intent.setClassName("com.android.phone", "com.android.phone.NetworkSetting");
+                                    startActivity(intent);
+                                }
+                            }
+                    )
+                    .setNegativeButton("Cancel",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    dialog.dismiss();
+                                }
+                            }
+                    )
+                    .create();
+
+    }
+
 }

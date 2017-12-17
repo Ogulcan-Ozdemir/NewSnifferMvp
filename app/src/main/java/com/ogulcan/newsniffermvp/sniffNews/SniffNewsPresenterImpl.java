@@ -47,4 +47,9 @@ public class SniffNewsPresenterImpl implements ISniffNewsPresenter,ResponseListe
     public void searchForThis(String input) {
          newsInteractor.initNewSearch(input);
     }
+
+    @Override
+    public void startSearchNews() {
+        newsInteractor.startSearchingNews();
+    }
 }
