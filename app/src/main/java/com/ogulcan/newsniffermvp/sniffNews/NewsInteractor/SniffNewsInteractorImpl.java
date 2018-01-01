@@ -30,6 +30,7 @@ public class SniffNewsInteractorImpl implements Callback<NewsReponseModel>,Sniff
     //it starts 1
     private int currentPage=1;
     private String searchText;
+
     public SniffNewsInteractorImpl( final ResponseListener listener){
         this.listener=listener;
 

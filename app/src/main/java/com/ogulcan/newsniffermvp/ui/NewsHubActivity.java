@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -27,6 +28,7 @@ import com.ogulcan.newsniffermvp.ui.NewsRecyclerList.NewsListAdapter;
 import com.ogulcan.newsniffermvp.ui.NewsRecyclerList.NewsRecyclerListClickListener;
 import com.ogulcan.newsniffermvp.ui.NewsRecyclerList.OnItemClickListener;
 import com.ogulcan.newsniffermvp.ui.NewsRecyclerList.ScrollListener;
+import com.ogulcan.newsniffermvp.utils.FragmentCaller;
 import com.ogulcan.newsniffermvp.utils.NetworkStatusReceiver;
 
 import java.util.ArrayList;
@@ -36,7 +38,7 @@ import butterknife.ButterKnife;
 
 import static android.view.inputmethod.EditorInfo.IME_ACTION_DONE;
 
-public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView,ShowDetailsFragment.OnFragmentInteractionListener,OnItemClickListener,ScrollListener.OnBottomOfListListener,TextView.OnEditorActionListener{
+public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView,OnItemClickListener,ScrollListener.OnBottomOfListListener,TextView.OnEditorActionListener{
 
     @BindView(R.id.newsList)
     RecyclerView recyclerView;
@@ -48,10 +50,6 @@ public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView
     ProgressBar progressBar;
 
     private static String TAG;
-
-
-    private  ShowDetailsFragment detailsFragment;
-
     private ProgressDialog dialog;
     private AlertDialog alertDialog;
     private SniffNewsPresenterImpl sniffNewsPresenter;
@@ -69,17 +67,7 @@ public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView
         TAG=getLocalClassName();
 
         dialog= ProgressDialog.show(this,"Sniffing news...",null);
-
-
-//        setProgressBarIndeterminateVisibility(true);
-
         receiver = new NetworkStatusReceiver();
-
-
-        if(detailsFragment == null) {
-            detailsFragment = (ShowDetailsFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_frame);
-        }
-
         sniffNewsPresenter = new SniffNewsPresenterImpl(this);
 
         LinearLayoutManager llm = new LinearLayoutManager(this);
@@ -89,7 +77,7 @@ public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView
         adapter=new NewsListAdapter(new ArrayList<ArticleModel>(),this);
         recyclerView.setAdapter(adapter);
 
-        scrollListener =  new ScrollListener(this,this.editText);
+        scrollListener =  new ScrollListener(this,llm);
         recyclerView.addOnItemTouchListener(new NewsRecyclerListClickListener(this));
         recyclerView.addOnScrollListener(scrollListener);
 
@@ -141,7 +129,7 @@ public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView
     public void onResume() {
         super.onResume();
         recyclerView.addOnScrollListener(scrollListener);
-
+        dialog.dismiss();
         if(receiver.isConnected(this)){
 //           sniffNewsPresenter.startSearchNews();
         }else {
@@ -158,38 +146,29 @@ public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView
         recyclerView.removeOnScrollListener(scrollListener);
     }
 
-    @Override
-    public void onFragmentInteraction() {
-      Log.d(TAG,"fragment");
-    }
 
-//    @Override
-//    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-//        dialog=ProgressDialog.show(this,"Getting details ...",null);
-//        detailsFragment = ShowDetailsFragment.newInstance(sniffNewsPresenter.selectedArticle(i).getUrl());
-//        FragmentCaller.showFragment(getSupportFragmentManager(),detailsFragment,R.id.fragment_frame);
-////        Intent intent= new Intent(this,WebViewActivity.class);
-////        intent.putExtra("url",sniffNewsPresenter.selectedArticle(i).getUrl());
-////        startActivity(intent);
-//    }
+
+
 
     @Override
     public void onBackPressed() {
+//        getSupportFragmentManager().beginTransaction().remove(detailsFragment).commit();
         if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
             getSupportFragmentManager().popBackStack();
-        } else {
+        }else{
             super.onBackPressed();
         }
+
 
 
     }
 
     @Override
     public void itemClicked(View view, int position) {
-        dialog=ProgressDialog.show(this,"Getting details ...",null);
-        Intent intent= new Intent(this,WebViewActivity.class);
-        intent.putExtra("url",sniffNewsPresenter.selectedArticle(position).getUrl());
-        startActivity(intent);
+
+        ShowDetailsFragment detailsFragment = ShowDetailsFragment.newInstance(sniffNewsPresenter.selectedArticle(position).getUrl());
+        FragmentCaller.showFragment(getSupportFragmentManager(), detailsFragment,R.id.fragment_frame);
+
     }
 
     @Override
@@ -225,9 +204,8 @@ public class NewsHubActivity extends AppCompatActivity implements ISniffNewsView
                     .setPositiveButton("Open Network connection",
                             new DialogInterface.OnClickListener() {
                                 public void onClick(DialogInterface dialog, int whichButton) {
-                                    Intent intent = new Intent(Intent.ACTION_MAIN);
-                                    intent.setClassName("com.android.phone", "com.android.phone.NetworkSetting");
-                                    startActivity(intent);
+
+                                    startActivity(new Intent(Settings.ACTION_WIRELESS_SETTINGS));
                                 }
                             }
                     )
